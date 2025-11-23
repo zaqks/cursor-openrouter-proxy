@@ -1,0 +1,31 @@
+networks:
+  proxy:
+    external: true
+
+services:
+  cursor-proxy:
+    build:
+      context: .
+    container_name: cursor-proxy
+    env_file: .env
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL}
+      - DEBUG=${DEBUG:-false}
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    # networks:
+    #   - proxy
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.cursor-proxy.entrypoints=websecure
+      - traefik.http.routers.cursor-proxy.rule=Host(`cursor-proxy.${DOMAIN}`)
+      - traefik.http.services.cursor-proxy.loadbalancer.server.port=9000
+      - traefik.http.routers.cursor-proxy.tls=true
+      - traefik.http.routers.cursor-proxy.tls.certresolver=myresolver
